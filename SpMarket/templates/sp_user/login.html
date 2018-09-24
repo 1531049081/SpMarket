@@ -1,5 +1,12 @@
 {% extends 'public/base.html' %}
 {% load static %}
+{% block meta_css %}
+    <style>
+        .errornote{
+            color: red;
+        }
+    </style>
+{% endblock %}
 {% block header %}
     <header data-am-widget="header" class="am-header am-header-default sq-head ">
         <div class="am-header-left am-header-nav">
@@ -17,11 +24,20 @@
 
 {% block content %}
     <div style="height: 3rem;"></div>
-    <input type="text" name="mobile" id="mobile" placeholder="请输入用户名/手机号" class="login-name">
-    <input type="password" name="password" id="password" placeholder="请输入密码" class="login-password">
-    <input type="button" class="login-btn" value="我要登录">
+
+    <form action="" method="post" novalidate>
+        {% csrf_token %}
+        {{ form.phone }}
+        <p class="errornote">{{ form.errors.phone.0 }}</p>
+
+        {{ form.password }}
+        <p class="errornote">{{ form.errors.password.0 }}</p>
+
+        <input type="submit" class="login-btn" value="我要登录">
+    </form>
+
     <div class="agree">
-        <a href="reg.html">免费注册</a>
+        <a href="{% url 'sp_user:register' %}">免费注册</a>
         <a href="forgetpassword.html" class="forget">忘记密码？</a>
     </div>
     <div class="line"></div>
