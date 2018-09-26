@@ -3,7 +3,9 @@
 
 {% block meta_css %}
     <style>
-    .error{color: red}
+        .error {
+            color: red
+        }
     </style>
 {% endblock %}
 
@@ -23,27 +25,88 @@
 
 {% block content %}
     <form action="" method="post" novalidate>
-    {% csrf_token %}
-     <div style="height: 3rem;"></div>
+        {% csrf_token %}
+        <div style="height: 3rem;"></div>
 
-    {{ form.phone }}
-    <p class="error">{{ form.errors.phone.0 }}</p>
+        {{ form.phone }}
+        <p class="error">{{ form.errors.phone.0 }}</p>
 
-    {{ form.password }}
-    <p class="error">{{ form.errors.password.0 }}</p>
+        {{ form.password }}
+        <p class="error">{{ form.errors.password.0 }}</p>
 
-   {{ form.repassword }}
-    <p class="error">{{ form.errors.repassword.0 }}</p>
+        {{ form.repassword }}
+        <p class="error">{{ form.errors.repassword.0 }}</p>
 
-    <div class="yzm" style="margin-top: 1.5rem;">
-        <input type="text" class="reg-yzm" placeholder="输入验证码"/>
-        <input type="button" class="yzm-hq" value="获取验证码"/>
-    </div>
-    <input type="submit" class="login-btn" value="立即注册">
-    <div class="agree">
-        <input type="checkbox" name="checkbox" value="同意" checked="">&nbsp;同意
-        <a href="" class="xy">《用户协议》</a>
-        <div class="r-login">已有账号，请<a href="{% url 'sp_user:login' %}" class="l-login">登录</a></div>
-    </div>
+        <div class="yzm" style="margin-top: 1.5rem;">
+            {{ form.verify_code }}
+            <input type="button" class="yzm-hq" value="获取验证码"/>
+
+        </div>
+         <p class="error">{{ form.errors.verify_code.0 }}</p>
+        <input type="submit" class="login-btn" value="立即注册">
+        <div class="agree">
+            <input type="checkbox" name="agree" value="同意" checked="">&nbsp;同意
+            <p class="error">{{ form.errors.agree.0 }}</p>
+            <a href="" class="xy">《用户协议》</a>
+            <div class="r-login">已有账号，请<a href="{% url 'sp_user:login' %}" class="l-login">登录</a></div>
+        </div>
     </form>
+{% endblock %}
+
+{% block footer_js %}
+    <script>
+        $(function () {
+            // js代码
+           $(".yzm-hq").on("click", function () {
+                //1. 获取手机号码
+                var phone = $("#id_phone").val();
+                //2. 手机号码必须填写才发送
+                if (phone.length != 11){
+                    alert("手机号码格式错误!");
+                    return false;
+                }
+                //3. 发送ajax 请求
+                var data = {
+                    "tel":phone,
+                    "csrfmiddlewaretoken":"{{ csrf_token }}"
+                };
+{#                {% csrf_token %}#}
+
+                // 保存当前 的对象
+                var that = this;
+                $.post("{% url 'sp_user:SendCodeView' %}",data,function(data){
+                    if (data.status == 200){
+                        //1. 成功
+                        //2. 按钮禁止再次点击 改变当前标签对象上的disabled属性
+                        $(that).attr('disabled','disabled');
+                        //3. 按钮变灰
+                        $(that).css("background-color","gray");
+                        //4. 再按钮上显示倒计时60秒 文字提示
+                        var time = 60;
+                        var msg = time + "秒后重新发送";
+                        $(that).val(msg);
+                        //5. 定时器改变文字显示中的时间
+                        var timer = window.setInterval(function () {
+                            --time;
+                            if (time == 0){
+                                // 倒计时结束
+                                window.clearInterval(timer); // 结束定时器
+                                //2. 按钮禁止再次点击 改变当前标签对象上的disabled属性
+                                $(that).removeAttr("disabled");
+                                //3. 按钮变灰
+                                $(that).css("background-color","#76bb2a");
+                                msg = "获取验证码";
+                                $(that).val(msg);
+                                return;
+                            }
+                            msg = time + "秒后重新发送";
+                            $(that).val(msg);
+                        },1000);
+                    }else{
+                        alert(data.msg);
+                    }
+                })
+            });
+        });
+    </script>
 {% endblock %}

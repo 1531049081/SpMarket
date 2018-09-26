@@ -6,6 +6,9 @@ from sp_user.views import (RegisterView,
                            AddressView,
                            InfoView,
                            LogoutView,
+                           info,
+                           SendCodeView,
+                           upload_head,
                            )
 
 urlpatterns = [
@@ -14,5 +17,8 @@ urlpatterns = [
     url(r'^center/$', CenterView.as_view(), name="center"),  # 个人中心
     url(r'^address/$', AddressView.as_view(), name="address"),  # 收货地址
     url(r'^info/$', InfoView.as_view(), name="info"),  # 个人资料
+    # url(r'^info/$', info, name="info"),  # 个人资料
     url(r'^logout/$', LogoutView.as_view(), name="logout"),  # 退出
+    url(r'^SendCodeView/$', SendCodeView.as_view(), name="SendCodeView"),  # 发送验证码
+    url(r'^upload_head/$', upload_head, name="upload_head"),  # 上传头像
 ]

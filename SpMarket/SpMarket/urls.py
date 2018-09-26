@@ -16,8 +16,16 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
+from sp_goods.views import IndexView
+
 urlpatterns = [
+    # 127.0.0.1:8000
+    url(r'^$', IndexView.as_view(), name="商城首页"),
     url(r'^admin/', admin.site.urls),
+    # 上传部件自动调用的上传地址
+    url(r'^ckeditor/', include("ckeditor_uploader.urls")),
     # 绑定 用户模块子路由
     url(r'^user/', include("sp_user.urls", namespace="sp_user")),
+    # 绑定 商品模块子路由
+    url(r'^goods/', include("sp_goods.urls", namespace="sp_goods")),
 ]

@@ -13,11 +13,27 @@ class RegisterForm(forms.ModelForm):
                                  min_length=6,
                                  error_messages={
                                      "required": "请确认密码",
+
                                  },
                                  widget=forms.PasswordInput(attrs={
                                      "class": "login-password",
-                                     "placeholder": "请确认密码"
+                                     "placeholder": "请确认密码",
                                  }))
+
+    verify_code = forms.CharField(
+        required=True,
+        error_messages={
+            "required": "请输入验证码"
+        },
+        widget=forms.TextInput(attrs={"class": "reg-yzm", "placeholder": "输入验证码"})
+    )
+
+    agree = forms.BooleanField(
+        required=True,
+        error_messages={
+            "required": "必须同意用户协议"
+        }
+    )
 
     class Meta:
         model = Users
@@ -30,7 +46,8 @@ class RegisterForm(forms.ModelForm):
             }),
             "password": forms.TextInput(attrs={
                 "class": "login-password",
-                "placeholder": "请输入密码"
+                "placeholder": "请输入密码",
+                "type": "password"
             }),
         }
 
@@ -65,6 +82,17 @@ class RegisterForm(forms.ModelForm):
         # 返回清洗后的值
         return phone
 
+    # 验证短信验证码
+    def clean_verify_code(self):
+        # self.cleaned_data.get('verify_code')
+        # 获取用户提交的验证码
+        verify_code = self.cleaned_data.get('verify_code')
+        # 获取原始数据保存的验证码
+        session_code = self.data.get("verify_code")
+        if verify_code != session_code:
+            raise forms.ValidationError("验证码错误")
+        return verify_code
+
     # 综合验证
     def clean(self):
         # 所有清洗后的数据
@@ -89,7 +117,8 @@ class LoginForm(forms.ModelForm):
         fields = ['phone', 'password']
         widgets = {
             'phone': forms.TextInput(attrs={"class": "login-name", "placeholder": "请输入号码"}),
-            'password': forms.PasswordInput(attrs={"class": "login-password", "placeholder": "请输入密码"})
+            'password': forms.PasswordInput(
+                attrs={"class": "login-password", "placeholder": "请输入密码"})
         }
 
         error_messages = {
@@ -105,7 +134,7 @@ class LoginForm(forms.ModelForm):
         cleaned_data = super().clean()
         # 验证手机号码和密码是否正确
         phone = cleaned_data.get('phone')
-        password = cleaned_data.get('password',"")
+        password = cleaned_data.get('password', "")
         # 通过手机查询数据,如果有就验证密码,没有则报错
         user = Users.objects.filter(phone=phone).first()
         if user is None:

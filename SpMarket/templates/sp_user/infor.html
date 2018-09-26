@@ -1,8 +1,15 @@
 {% extends 'public/base.html' %}
 {% load static %}
 
+{% block meta_js %}
+    <!--引入CSS-->
+    <link rel="stylesheet" type="text/css" href="{% static 'webuploader/webuploader.css' %}">
+    <!--引入JS-->
+    <script type="text/javascript" src="{% static 'webuploader/webuploader.js' %}"></script>
+{% endblock %}
+
 {% block meta_css %}
-    <link href="css/check.css" rel="stylesheet" type="text/css"/>
+    <link href="{% static 'css/check.css' %}" rel="stylesheet" type="text/css"/>
 {% endblock %}
 
 {% block header %}
@@ -25,10 +32,21 @@
             <a href="">
                 <i style="margin-top: 25px;">头像</i>
                 <div class="infor-pic">
-                    <img src="{% static 'images/infortx.png' %}"/>
+                    <img id="head_img" src="{{ MEDIA_URL }}{{ user.head }}"/>
                 </div>
             </a>
+            <!--dom结构部分-->
+            <div id="uploader-demo">
+                <!--用来存放item-->
+                <div id="fileList" class="uploader-list"></div>
+                <div id="filePicker">选择图片</div>
+            </div>
         </li>
+        <form action="" method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {#            <input type="file" name="head">#}
+            {#            <input type="submit" value="提交">#}
+        </form>
         <li>
             <a href="">
                 <i>昵称</i>
@@ -74,4 +92,44 @@
             <input class="infor-tele" placeholder="13012345678"/>
         </li>
     </ul>
+{% endblock %}
+
+{% block footer_js %}
+    <script>
+        // 初始化Web Uploader
+        var uploader = WebUploader.create({
+
+            // 选完文件后，是否自动上传。
+            auto: true,
+
+            // swf文件路径
+            swf: "{% static 'webuploader/Uploader.swf' %}",
+
+            // 文件接收服务端。
+            server: "\{% url 'sp_user:upload_head'%}",
+
+            // 选择文件的按钮。可选。
+            // 内部根据当前运行是创建，可能是input元素，也可能是flash.
+            pick: '#filePicker',
+
+            // 只允许选择图片文件。
+            accept: {
+                title: 'Images',
+                extensions: 'gif,jpg,jpeg,bmp,png',
+                mimeTypes: 'image/*'
+            }
+        });
+
+
+        // 当有文件添加进来的时候
+        uploader.on('fileQueued', function (file) {
+            $img = $("#head_img");
+            // 创建缩略图
+            // 如果为非图片文件，可以不用调用此方法。
+            // thumbnailWidth x thumbnailHeight 为 100 x 100
+            uploader.makeThumb(file, function (error, src) {
+                $img.attr('src', src);
+            }, 100, 100);
+        });
+    </script>
 {% endblock %}
