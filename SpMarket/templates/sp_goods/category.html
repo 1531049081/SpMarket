@@ -17,6 +17,18 @@
             white-space: normal;
             text-overflow: ellipsis;
         }
+
+        .list-price {
+            background: url({% if order == 2 %}{% static 'images/order-bot.png' %}
+            {% elif order == 3 %}
+            {% static 'images/order-top.png' %}
+            {% else %}
+            {% static 'images/order.png' %}
+            {% endif %})
+            no-repeat right center;
+            padding-right: 20px;
+            font-style: normal;
+        }
     </style>
 {% endblock %}
 
@@ -27,27 +39,36 @@
                 <i class="am-icon-chevron-left"></i>
             </a>
         </div>
-        <div class="cate-search">
-            <input type="text" class="cate-input" placeholder="请输入您要的搜索的产品关键词"/>
-            <input type="button" class="cate-btn"/>
-        </div>
+        <form action="/search/" method="get">
+            <div class="cate-search">
+            <input type="text" name="q" class="cate-input" placeholder="请输入您要的搜索的产品关键词"/>
+            <input type="submit" value="" class="cate-btn"/>
+            </div>
+        </form>
+
     </header>
     <div style="height: 49px;"></div>
 {% endblock %}
 
 {% block content %}
     <ul class="list-nav">
-        <li class="current"><a href="">综合</a></li>
-        <li><a href="">销量</a></li>
-        <li><a href=""> <i class="list-price">价格</i></a></li>
-        <li><a href="">新品</a></li>
+        <li {% if order == 0 %} class="current"{% endif %}><a href="{% url 'sp_goods:CategoryView' cate_id 0 %}">综合</a>
+        </li>
+        <li {% if order == 1 %} class="current"{% endif %}><a href="{% url 'sp_goods:CategoryView' cate_id 1 %}">销量</a>
+        </li>
+        <li {% if order == 2 or order == 3 %} class="current"{% endif %}>
+            <a href="{% url 'sp_goods:CategoryView' cate_id 2 %}" id="price"> <i class="list-price">价格</i></a>
+        </li>
+        <li {% if order == 4 %} class="current"{% endif %}><a href="{% url 'sp_goods:CategoryView' cate_id 4 %}">新品</a>
+        </li>
     </ul>
     <div class="content-list">
         <div class="list-left">
             {% for category in categorys %}
                 <li {% if category.pk == cate_id %}
                     class="current"
-                {% endif %}><a href="{% url 'sp_goods:CategoryView' category.pk %}">{{ category.cate_name }}</a></li>
+                {% endif %}><a href="{% url 'sp_goods:CategoryView' category.pk order %}">{{ category.cate_name }}</a>
+                </li>
             {% endfor %}
 
 
@@ -131,6 +152,14 @@
                     update_item(self.siblings('input').data('item-id'));
                 }
             })
+
+            // 改变价格a标签的链接
+            if ("{{ order }}" == 2) {
+                $("#price").attr("href", "{% url 'sp_goods:CategoryView' cate_id 3 %}")
+            } else if ("{{ order }}" == 3) {
+                $("#price").attr("href", "{% url 'sp_goods:CategoryView' cate_id 2 %}")
+            }
+
         })
 
     </script>

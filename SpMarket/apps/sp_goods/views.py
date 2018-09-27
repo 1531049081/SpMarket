@@ -35,9 +35,10 @@ class IndexView(View):
 class CategoryView(View):
     """分类列表页"""
 
-    def get(self, request, cate_id=0):
+    def get(self, request, cate_id=0, order=1):
         cate_id = int(cate_id)
         # 查询所有分类,并显示
+        order = int(order)
         categorys = Category.objects.filter(is_delete=False)
         # sku 全部商品
         # goods_skus = GoodsSKU.objects.filter(is_delete=False)
@@ -51,12 +52,17 @@ class CategoryView(View):
             # 获取传入分类id对应的分类
             category = Category.objects.get(pk=cate_id)
 
-        goods_skus = category.goodssku_set.all()
+        # goods_skus = category.goodssku_set.all().order_by('id')
+
+        # 映射的关系
+        order_by_rule = ["id", "-sale_num", "-price", "price", "-create_time"]
+        goods_skus = category.goodssku_set.all().order_by(order_by_rule[order])
         # 组装成字典
         context = {
             "goods_skus": goods_skus,
             "categorys": categorys,
-            "cate_id":cate_id
+            "cate_id": cate_id,
+            "order": order
         }
 
         return render(request, 'sp_goods/category.html', context)
