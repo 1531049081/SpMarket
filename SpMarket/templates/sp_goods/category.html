@@ -44,24 +44,31 @@
     </ul>
     <div class="content-list">
         <div class="list-left">
-            <li><a href="">进口特产</a></li>
-            <li class="current"><a href="">休闲零食</a></li>
+            {% for category in categorys %}
+                <li {% if category.pk == cate_id %}
+                    class="current"
+                {% endif %}><a href="{% url 'sp_goods:CategoryView' category.pk %}">{{ category.cate_name }}</a></li>
+            {% endfor %}
+
+
+            {#            <li><a href="">进口特产</a></li>#}
+            {#            <li class="current"><a href="">休闲零食</a></li>#}
 
         </div>
         <div class="list-right">
             <ul class="list-pro">
                 {% for goods in goods_skus %}
                     <li>
-                        <a href="{% url 'sp_goods:DetailView' %}"><img src="{{ MEDIA_URL }}{{ goods.logo }}"
-                                                                       class="list-pic"/></a>
+                        <a href="{% url 'sp_goods:DetailView' goods.pk %}"><img src="{{ MEDIA_URL }}{{ goods.logo }}"
+                                                                                class="list-pic"/></a>
                         <div class="shop-list-mid" style="width: 65%;">
                             <div class="tit">
-                                <a href="{% url 'sp_goods:DetailView' %}">
-                                    {{ goods.sku_name }}
+                                <a href="{% url 'sp_goods:DetailView' goods.pk %}">
+                                    {{ goods.goods_spu.spu_name }}&emsp;{{ goods.sku_name }}
                                 </a>
                             </div>
                             <div class="am-gallery-desc">￥{{ goods.price }}</div>
-                            <p>销量：{{ goods.sale_num }}件</p>
+                            <p>销量：{{ goods.sale_num }}{{ goods.unit.name }}</p>
                         </div>
                         <div class="list-cart">
                             <div class="d-stock ">
@@ -72,11 +79,10 @@
                         </div>
                         <!--<a href="" class="list-cart"><img src="images/cart.png" width="30"/></a>-->
                     </li>
+
+                {% empty %}
+                    <li style="color: red">该分类下暂无商品哦!</li>
                 {% endfor %}
-
-
-
-
             </ul>
         </div>
     </div>
