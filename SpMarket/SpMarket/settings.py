@@ -27,6 +27,7 @@ SECRET_KEY = '6mer!!l^4%c9%6c40c@-z#-l0j0n@7@49pst2@td-p8dez4n60'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+# DEBUG = False
 
 ALLOWED_HOSTS = ["*"]
 
@@ -141,14 +142,13 @@ QINIU_ACCESS_KEY = '7xmOLFo9h96-Gn_z9E6HPk2O47KTBz4bumqYAaIW'
 QINIU_SECRET_KEY = 'gnu2x8PgePHX--MhJQIgsC6sNiN3YRq0jS978d3u'
 QINIU_BUCKET_NAME = 'images'
 QINIU_BUCKET_DOMAIN = 'pflzudkha.bkt.clouddn.com/'
-QINIU_SECURE_URL = False      #使用http
+QINIU_SECURE_URL = False  # 使用http
 PREFIX_URL = 'http://'
 
 # 上传文件地址配置
 MEDIA_URL = PREFIX_URL + QINIU_BUCKET_DOMAIN + "/"
 # 上传文件的存储引擎配置
 DEFAULT_FILE_STORAGE = 'qiniustorage.backends.QiniuStorage'
-
 
 # 缓存配置
 CACHES = {
@@ -175,8 +175,6 @@ CKEDITOR_CONFIGS = {
     },
 }
 
-
-
 # 全文检索框架的配置
 HAYSTACK_CONNECTIONS = {
     'default': {
@@ -188,6 +186,5 @@ HAYSTACK_CONNECTIONS = {
         'PATH': os.path.join(BASE_DIR, 'whoosh_index'),
     },
 }
-#当添加、修改、删除数据时，自动生成索引
+# 当添加、修改、删除数据时，自动生成索引
 HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'
-

@@ -55,7 +55,11 @@ class LoginView(View):
             request.session["phone"] = user.phone
             # 设置有效期,关闭浏览则结束
             request.session.set_expiry(0)
+
             # 跳转到用户中心
+            # 获取到跳转的位置
+            if request.GET.get('next', None):
+                return redirect(request.GET.get('next'))
             return redirect(reverse('sp_user:center'))
         # 验证失败
         return render(request, "sp_user/login.html", {"form": login_form})

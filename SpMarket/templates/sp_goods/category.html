@@ -24,8 +24,7 @@
             {% static 'images/order-top.png' %}
             {% else %}
             {% static 'images/order.png' %}
-            {% endif %})
-            no-repeat right center;
+            {% endif %}) no-repeat right center;
             padding-right: 20px;
             font-style: normal;
         }
@@ -41,8 +40,8 @@
         </div>
         <form action="/search/" method="get">
             <div class="cate-search">
-            <input type="text" name="q" class="cate-input" placeholder="请输入您要的搜索的产品关键词"/>
-            <input type="submit" value="" class="cate-btn"/>
+                <input type="text" name="q" class="cate-input" placeholder="请输入您要的搜索的产品关键词"/>
+                <input type="submit" value="" class="cate-btn"/>
             </div>
         </form>
 
@@ -77,6 +76,7 @@
 
         </div>
         <div class="list-right">
+
             <ul class="list-pro">
                 {% for goods in goods_skus %}
                     <li>
@@ -94,7 +94,8 @@
                         <div class="list-cart">
                             <div class="d-stock ">
                                 <a class="decrease">-</a>
-                                <input id="num" readonly="" class="text_box" name="" type="text" value="0">
+                                <input sku_id="{{ goods.pk }}" id="num" readonly="" class="text_box" name="" type="text"
+                                       value="0">
                                 <a class="increase">+</a>
                             </div>
                         </div>
@@ -114,7 +115,7 @@
     <!--底部-->
     <div style="height: 55px;"></div>
     <div class="fix-bot">
-        <div class="fix-bot-cart"><i>8</i></div>
+        <div class="fix-bot-cart"><i id="total_count">{{ total }}</i></div>
         <a href="tureorder.html" class="list-js">去结算</a>
         <a href="tureorder.html" class="list-jsk">一键快购</a>
         <!--<div class="js-text">
@@ -125,41 +126,91 @@
 {% endblock %}
 
 {% block footer_js %}
+    {#            {% csrf_token %}#}
     <script>
         //购物数量加减
+        // 增加
         $(function () {
+            // 添加
             $('.increase').click(function () {
                 var self = $(this);
                 var current_num = parseInt(self.siblings('input').val());
-                current_num += 1;
-                if (current_num > 0) {
-                    self.siblings(".decrease").fadeIn();
-                    self.siblings(".text_box").fadeIn();
-                }
-                self.siblings('input').val(current_num);
-                update_item(self.siblings('input').data('item-id'));
-            })
+
+
+                // 完成ajax请求后台,添加数据成功
+                var sku_id = self.siblings('input').attr('sku_id');
+                var data = {
+                    "sku_id": sku_id,
+                    "count": 1,
+                    "csrfmiddlewaretoken": "{{ csrf_token }}"
+                };
+                $.post("{% url 'sp_car:addCar' %}", data, function (data) {
+                    if (data.error == "0") {
+                        current_num += 1;
+                        if (current_num > 0) {
+                            self.siblings(".decrease").fadeIn();
+                            self.siblings(".text_box").fadeIn();
+                        }
+                        self.siblings('input').val(current_num);
+
+                        // 修改购物车总数量
+                        $("#total_count").text(data.total)
+                    } else if (data.error == "1") {
+                        // 没有登录,跳转到登录界面,js代码跳转
+                        // 提示,让用户选择是否登录
+                        {#var rs = confirm(data.msg)#}
+                        {#console.debug(rs)#}
+                        if (confirm(data.msg)) {
+                            // js代码跳转
+                            location.href = "{% url 'sp_user:login' %}?next={% url 'sp_goods:CategoryView' cate_id order %}"
+                        }
+                    } else {
+                        alert(data.msg);
+                    }
+                });
+            });
+
+            // 减少
             $('.decrease').click(function () {
                 var self = $(this);
                 var current_num = parseInt(self.siblings('input').val());
                 if (current_num > 0) {
-                    current_num -= 1;
-                    if (current_num < 1) {
-                        self.fadeOut();
-                        self.siblings(".text_box").fadeOut();
-                    }
-                    self.siblings('input').val(current_num);
-                    update_item(self.siblings('input').data('item-id'));
+                    //发送ajax请求, 购物车数量减1
+                    var sku_id = self.siblings('input').attr('sku_id');
+                    var data = {
+                        "sku_id": sku_id,
+                        "csrfmiddlewaretoken": "{{ csrf_token }}"
+                    };
+                    $.post("{% url 'sp_car:del_car' %}", data, function (data) {
+                        if (data.error == "0") {
+                            current_num -= 1;
+                            if (current_num < 1) {
+                                self.fadeOut();
+                                self.siblings(".text_box").fadeOut();
+                            }
+                            self.siblings('input').val(current_num);
+                            // 修改购物车总数量
+                            $("#total_count").text(data.total)
+                        } else if (data.error == "1") {
+                            // 没有登录, 跳转到登录页面进行, 通过js代码实现跳转
+                            if (confirm(data.msg)) {
+                                // js 实现跳转的方法
+                                location.href = "{% url 'sp_user:login' %}?next={% url 'sp_goods:CategoryView' cate_id order %}"
+                            }
+                        } else {
+                            alert(data.msg);
+                        }
+                    });
                 }
-            })
+            });
+
 
             // 改变价格a标签的链接
             if ("{{ order }}" == 2) {
-                $("#price").attr("href", "{% url 'sp_goods:CategoryView' cate_id 3 %}")
+                $("#price").attr('href', "{% url 'sp_goods:CategoryView' cate_id 3 %}")
             } else if ("{{ order }}" == 3) {
-                $("#price").attr("href", "{% url 'sp_goods:CategoryView' cate_id 2 %}")
+                $("#price").attr('href', "{% url 'sp_goods:CategoryView' cate_id 2 %}")
             }
-
         })
 
     </script>

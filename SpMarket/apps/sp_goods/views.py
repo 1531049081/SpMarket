@@ -3,6 +3,7 @@ from django.shortcuts import render, redirect
 # Create your views here.
 from django.urls import reverse
 from django.views import View
+from django_redis import get_redis_connection
 
 from sp_goods.models import GoodsSKU, Category
 
@@ -57,12 +58,26 @@ class CategoryView(View):
         # 映射的关系
         order_by_rule = ["id", "-sale_num", "-price", "price", "-create_time"]
         goods_skus = category.goodssku_set.all().order_by(order_by_rule[order])
-        # 组装成字典
+
+        # 获取该用户购物车中商品的总数
+        user_id = request.session.get('ID', None)
+        # 准备变量保存总数量
+        total = 0
+        if user_id:
+            cnn = get_redis_connection('default')
+            # 购物车的键
+            car_key = "car_%s" % user_id
+            car_values = cnn.hvals(car_key)
+            for v in car_values:
+                total += int(v)
+
+        # 组成字典
         context = {
             "goods_skus": goods_skus,
             "categorys": categorys,
             "cate_id": cate_id,
-            "order": order
+            "order": order,
+            "total": total,
         }
 
         return render(request, 'sp_goods/category.html', context)

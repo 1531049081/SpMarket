@@ -30,4 +30,6 @@ urlpatterns = [
     url(r'^user/', include("sp_user.urls", namespace="sp_user")),
     # 绑定 商品模块子路由
     url(r'^goods/', include("sp_goods.urls", namespace="sp_goods")),
+    # 购物车模块
+    url(r'^car/', include('sp_car.urls', namespace='sp_car')),
 ]
