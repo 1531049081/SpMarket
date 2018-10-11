@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'sp_goods',  # 商品模块
     'ckeditor',  # ckeditor富文本编辑器
     'ckeditor_uploader',  # 添加ckeditor富文本编辑器文件上传部件
+    'sp_order.apps.SpOrderConfig',  # 订单模块
 ]
 
 MIDDLEWARE = [

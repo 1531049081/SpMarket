@@ -6,9 +6,9 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 
 from db.base_view import BaseVerifyView
-from sp_user.forms import RegisterForm, LoginForm
+from sp_user.forms import RegisterForm, LoginForm, AddressAddForm
 from sp_user.helper import verify_login_required
-from sp_user.models import Users
+from sp_user.models import Users, UserAddress
 
 
 class RegisterView(View):
@@ -70,7 +70,8 @@ class CenterView(BaseVerifyView):
     def get(self, request):
         phone = request.session.get('phone')
         context = {
-            'phone': phone
+            'phone': phone,
+            "footer": 5
         }
         return render(request, "sp_user/member.html", context)
 
@@ -184,3 +185,76 @@ class SendCodeView(View):
 
         # 3.响应 json,告知是否发送成功
         return JsonResponse({"status": "200"})
+
+
+
+# address/
+class AddressView(BaseVerifyView):
+    """
+        展示用户收货地址
+    """
+
+    def get(self, request):
+        # 当前登录用户的id
+        user_id = request.session.get("ID")
+        # 从数据库中查询 当前用户的所有的未删除的收货地址
+        address_list = UserAddress.objects.filter(user_id=user_id, is_delete=False).order_by("-isDefault")
+
+        # 渲染数据到页面
+        context = {
+            "address_list": address_list,
+        }
+        return render(request, "sp_user/address.html", context)
+
+    def post(self, request):
+        """
+            设置默认的收货地址
+        """
+        # 1. 接收参数 收货地址的主键pk addr_id
+        user_id = request.session.get("ID")
+        addr_id = request.POST.get("addr_id", 0)
+        # 2. 处理参数
+        # 将其他的设置为false
+        UserAddress.objects.filter(user_id=user_id).update(isDefault=False)
+        # 将该用户的 对应的收货地址的id设置为默认
+        rows = UserAddress.objects.filter(user_id=user_id, pk=addr_id).update(isDefault=True)
+        if rows == 0:
+            return JsonResponse({"error": 1, "msg": "设置失败!"})
+            # 3. 响应
+        return JsonResponse({"error": 0})
+
+
+# address/add/
+class AddressAddView(BaseVerifyView):
+    """
+        收货地址添加
+    """
+
+    def get(self, request):
+        return render(request, "sp_user/address_add.html")
+
+    def post(self, request):
+        # 1. 接收参数
+        # 单独获取当前登录用户的 记录
+        user_id = request.session.get("ID")
+        data = request.POST
+        # 2. 处理参数
+        form = AddressAddForm(data)
+        if form.is_valid():
+            form.instance.user_id = user_id
+
+            # 判断当前用户的收货地址的数量
+            count = UserAddress.objects.filter(user_id=user_id, is_delete=False).count()
+            if count == 6:
+                return JsonResponse({"error": 1, "errors": {"phone": ["收货地址只能添加6个!"]}})
+
+            # 默认的收货地址只能有一个, 如果当前添加的收货地址为True,当前用户其它收货地址都为False
+            if form.cleaned_data.get("isDefault"):
+                UserAddress.objects.filter(user_id=user_id).update(isDefault=False)
+
+            form.save()
+            return JsonResponse({"error": 0})
+        else:
+            # 3. 响应
+            # form.errors['phone'][0]
+            return JsonResponse({"error": 1, "errors": form.errors})

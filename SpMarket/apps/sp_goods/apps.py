@@ -2,5 +2,5 @@ from django.apps import AppConfig
 
 
 class SpGoodsConfig(AppConfig):
-    name = '商品模块'
-
+    name = 'sp_goods'
+    verbose_name = "商品模块"

@@ -18,14 +18,14 @@ def set_password(pwd):
 # 登录验证装饰器,用于验证是否登录
 def verify_login_required(func):
     """
-    :param func: 旧函数
+    :param func:  旧函数
     :return:
     """
     # 定义一个新函数
     def verify_login(request, *args, **kwargs):
-        if request.session.get('ID') is None:
+        if request.session.get("ID") is None:
             # 没有登录
-            return redirect(reverse("sp_user:login"))
+            return redirect(reverse("sp_user:login")) # 设置响应头 location: url
         else:
             return func(request, *args, **kwargs)
 

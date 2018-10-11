@@ -14,10 +14,10 @@ class IndexView(View):
     def get(self, request):
         # sku 商品
         goods_skus = GoodsSKU.objects.filter(is_delete=False)
-
         # 组装成字典
         context = {
-            "goods_skus": goods_skus
+            "goods_skus": goods_skus,
+            "footer":1
         }
         return render(request, 'sp_goods/index.html', context)
 
@@ -35,7 +35,6 @@ class IndexView(View):
 
 class CategoryView(View):
     """分类列表页"""
-
     def get(self, request, cate_id=0, order=1):
         cate_id = int(cate_id)
         # 查询所有分类,并显示

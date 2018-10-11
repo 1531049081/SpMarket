@@ -5,6 +5,8 @@ from sp_goods.models import Category, Unit, GoodsSPU, Gallery, GoodsSKU, Banner,
     ActivityZone
 
 
+admin.site.site_header = "电商管理平台"
+
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     # 商品分类

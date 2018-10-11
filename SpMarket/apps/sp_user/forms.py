@@ -2,7 +2,7 @@ from django import forms
 from django.core import validators
 
 from sp_user.helper import set_password
-from sp_user.models import Users
+from sp_user.models import Users, UserAddress
 
 
 class RegisterForm(forms.ModelForm):
@@ -149,3 +149,34 @@ class LoginForm(forms.ModelForm):
                 # 保存用户的信息对象user,到cleaned-data
                 cleaned_data['user'] = user
                 return cleaned_data
+
+
+class AddressAddForm(forms.ModelForm):
+    """用户添加收货地址的表单"""
+
+    class Meta:
+        model = UserAddress
+        exclude = ['create_time', 'update_time', 'is_delete', 'user']
+
+        error_messages = {
+            'username': {
+                'required': "请填写用户名！",
+            },
+            'phone': {
+                'required': "请填写手机号码！",
+            },
+            'brief': {
+                'required': "请填写详细地址！",
+            },
+            'hcity': {
+                'required': "请填写完整地址！",
+            },
+            'hproper': {
+                'required': "请填写完整地址！",
+            },
+            'harea': {
+                'required': "请填写完整地址！",
+            },
+        }
+
+    # 判断一个人最多六个收货地址

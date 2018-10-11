@@ -32,4 +32,6 @@ urlpatterns = [
     url(r'^goods/', include("sp_goods.urls", namespace="sp_goods")),
     # 购物车模块
     url(r'^car/', include('sp_car.urls', namespace='sp_car')),
+    # 订单模块
+    url(r'^order/', include('sp_order.urls', namespace="sp_order")),
 ]
