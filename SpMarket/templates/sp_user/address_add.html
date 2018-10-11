@@ -1,0 +1,174 @@
+{% extends 'public/base.html' %}
+{% load static %}
+
+{% block meta_js %}
+    <script src="{% static 'utils_js/common.js' %}"></script>
+    <script src="{% static 'utils_js/Popt.js' %}"></script>
+    <script src="{% static 'utils_js/cityJson.js' %}"></script>
+    <script src="{% static 'utils_js/citySet.js' %}"></script>
+{% endblock %}
+
+{% block meta_css %}
+    <style type="text/css">
+        ._citys {
+            width: 100%;
+            height: 100%;
+            display: inline-block;
+            position: relative;
+        }
+
+        ._citys span {
+            color: #56b4f8;
+            height: 15px;
+            width: 15px;
+            line-height: 15px;
+            text-align: center;
+            border-radius: 3px;
+            position: absolute;
+            right: 1em;
+            top: 10px;
+            border: 1px solid #56b4f8;
+            cursor: pointer;
+        }
+
+        ._citys0 {
+            width: 100%;
+            height: 34px;
+            display: inline-block;
+            border-bottom: 2px solid #56b4f8;
+            padding: 0;
+            margin: 0;
+        }
+
+        ._citys0 li {
+            float: left;
+            height: 34px;
+            line-height: 34px;
+            overflow: hidden;
+            font-size: 15px;
+            color: #888;
+            width: 80px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .citySel {
+            background-color: #56b4f8;
+            color: #fff !important;
+        }
+
+        ._citys1 {
+            width: 100%;
+            height: 80%;
+            display: inline-block;
+            padding: 10px 0;
+            overflow: auto;
+        }
+
+        ._citys1 a {
+            height: 35px;
+            display: block;
+            color: #666;
+            padding-left: 6px;
+            margin-top: 3px;
+            line-height: 35px;
+            cursor: pointer;
+            font-size: 13px;
+            overflow: hidden;
+        }
+
+        ._citys1 a:hover {
+            color: #fff;
+            background-color: #56b4f8;
+        }
+
+        .ui-content {
+            border: 1px solid #EDEDED;
+        }
+
+        li {
+            list-style-type: none;
+        }
+
+        #PoPy {
+            background-color: white !important;
+        }
+
+        .errorinfo{
+            color: red;
+        }
+    </style>
+{% endblock %}
+
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <h1 class="am-header-title">
+            <a href="" class="">新增收货地址</a>
+        </h1>
+    </header>
+    <div style="height: 60px;"></div>
+{% endblock %}
+
+{% block content %}
+    <form action="" method="post">
+        {% csrf_token %}
+        <ul class="address listview">
+            <li>
+                <span style="width: 15%">地址:</span>
+                <span id="city" style="color:#d7d7d7;padding-left:5px;width: 80%"></span>
+            </li>
+            <p class="errorinfo" name="hcity"></p>
+            <li><input type="text" name="brief" class="add-input" placeholder="详细地址"/></li>
+            <p class="errorinfo" name="brief"></p>
+            <li><input type="text" name="username" class="add-input" placeholder="收货人"/></li>
+            <p class="errorinfo" name="username"></p>
+            <li><input type="text" name="phone" class="add-input" placeholder="收货人手机号"/></li>
+            <p class="errorinfo" name="phone"></p>
+        </ul>
+        <div class="moren">
+            <label class="am-checkbox am-warning">
+                <input type="checkbox" name="isDefault" checked="checked" value="1" data-am-ucheck checked>设为默认
+            </label>
+
+        </div>
+        <input type="button" class="login-btn" value="确认提交">
+    </form>
+{% endblock %}
+
+{% block footer_js %}
+    <script type="text/javascript">
+        $("#city").click(function (e) {
+            SelCity(this, e);
+            console.log(this);
+        });
+
+        $(function () {
+            //ajax提交
+            $(".login-btn").on("click", function () {
+                // 初始化的时候将所有的错误信息清空
+                $(".errorinfo").text("");
+                //1. 准备数据
+                //获取整个form的提交数据
+                var data = $("form").serialize(); //获取表单数据序列化成合法的数据提交格式
+                //2. 提交
+                $.post("{% url 'sp_user:address_add' %}",data,function(data){
+                    if(data.error == "0"){
+                        location.href = "{% url 'sp_user:address' %}"
+                    }else {
+                        // 要做失败
+                        $.each(data.errors,function (i,e) {
+                            {#console.debug(i,e)#}
+                            // "" + i + ""  "p[name='"  +i+  "']"
+                            $("p[name='"+i+"']").text(e[0])
+                        })
+                    }
+                })
+            });
+        })
+    </script>
+{% endblock %}

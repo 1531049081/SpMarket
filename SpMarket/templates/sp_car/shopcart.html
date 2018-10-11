@@ -1,0 +1,196 @@
+{% extends 'public/base.html' %}
+{% load static %}
+
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <h1 class="am-header-title">
+            <a href="" class="">购物车</a>
+        </h1>
+    </header>
+    <div style="height: 49px;"></div>
+{% endblock %}
+
+{% block content %}
+    <form action="{% url 'sp_order:确认订单' %}" method="get">
+    <ul class="shopcart-list">
+        {% for goods in goodsList %}
+            <li>
+                <label class="am-checkbox am-warning">
+                    <input type="checkbox" checked="checked" name="sku_ids" value="{{ goods.pk }}" data-am-ucheck checked>
+                </label>
+                <a href="{% url 'sp_goods:DetailView' goods.pk %}"><img src="{{ MEDIA_URL }}{{ goods.logo }}" class="shop-pic"/></a>
+                <div class="shop-list-mid">
+                    <div class="tit">
+                        <a href="{% url 'sp_goods:DetailView' goods.pk %}">
+                            {{ goods.goods_spu.spu_name }}&emsp;{{ goods.sku_name }}
+                        </a>
+                    </div>
+                    <b class="shop-list-price">￥<i>{{ goods.price }}</i> </b>
+                </div>
+                <div class="list-cart1">
+                    <div class="d-stock">
+                        <a class="decrease">-</a>
+                        <input sku_id="{{ goods.pk }}" id="num" readonly="" class="text_box" name="" type="text" value="{{ goods.count }}">
+                        <a class="increase">+</a>
+                    </div>
+                </div>
+
+            </li>
+
+        {% empty %}
+            <!--购物车空的状态-->
+            <div class="login-logo">
+                <img src="{% static 'images/care.png' %}">
+                <p>亲、您的购物车还是空空的哦，快去装满它!</p>
+                <a href="{% url 'sp_goods:IndexView' %}" class="goshopping">前去逛逛</a>
+            </div>
+        {% endfor %}
+        <div style="height: 10px; background: #eee;"></div>
+    </ul>
+    </form>
+    <div class="shop-fix">
+
+        <label class="am-checkbox am-warning">
+            <input id="check_all" type="checkbox" checked="checked" value="" data-am-ucheck checked>
+        </label>
+        <a class="del">全选</a>
+        <a href="javascript:;" class="js-btn">去结算</a>
+        <div class="js-text">
+            <P>合计：￥<b id="total_price">{{ total_price }}</b></P>
+            <p class="js-car">合计商品数量:<b id="total_count">{{ total_count }}</b></p>
+        </div>
+    </div>
+{% endblock %}
+
+<!--底部-->
+{% block footer %}
+   {% include 'public/footer.html' %}
+{% endblock %}
+
+
+
+{% block footer_js %}
+    <script>
+        //购物数量加减
+        $(function () {
+            // 添加
+            $('.increase').click(function () {
+                var self = $(this);
+                var current_num = parseInt(self.siblings('input').val());
+
+
+                // 通过ajax请求后台, 添加数据库成功
+                var sku_id = self.siblings('input').attr('sku_id');
+                var data = {
+                    "sku_id": sku_id,
+                    "count": 1,
+                    "csrfmiddlewaretoken": "{{ csrf_token }}"
+                };
+                $.post("{% url 'sp_car:addCar' %}", data, function (data) {
+                    if (data.error == "0") {
+                        current_num += 1;
+                        if (current_num > 0) {
+                            self.siblings(".decrease").fadeIn();
+                            self.siblings(".text_box").fadeIn();
+                        }
+                        self.siblings('input').val(current_num);
+                        // 重新计算价格
+                        total_price_and_count()
+                    } else {
+                        alert(data.msg);
+                    }
+                });
+            });
+
+            // 减少
+            $('.decrease').click(function () {
+                var self = $(this);
+                var current_num = parseInt(self.siblings('input').val());
+                if (current_num > 0) {
+                    //发送ajax请求, 购物车数量减1
+                    var sku_id = self.siblings('input').attr('sku_id');
+                    var data = {
+                        "sku_id": sku_id,
+                        "csrfmiddlewaretoken": "{{ csrf_token }}"
+                    };
+                    $.post("{% url 'sp_car:del_car' %}", data, function (data) {
+                        if (data.error == "0") {
+                            current_num -= 1;
+                            if (current_num < 1) {
+                                self.fadeOut();
+                                self.siblings(".text_box").fadeOut();
+                            }
+                            self.siblings('input').val(current_num);
+                            // 重新计算价格
+                            total_price_and_count()
+                        } else {
+                            alert(data.msg);
+                        }
+                    });
+                }
+            });
+
+
+            //处理全选功能
+            $("#check_all").on("change",function () {
+                //获取当前复选框是否被选中
+                var status = $(this).prop('checked');
+                //将ul里面所有的父选框修改为 status
+                $('.shopcart-list').find(":checkbox").prop("checked",status);
+                //重新计算价格
+                total_price_and_count();
+            });
+
+            //处理单独每个商品上的复选框的状态, 绑定一个change事件
+            $('.shopcart-list').find(":checkbox").on("change",function () {
+                //重新计算价格
+                total_price_and_count();
+                //如果某一个商品没有被选中,那么全选复选框的选中状态应该为false
+                // 当选中的复选框和所有的复选框的数量不一致说明有商品没有被选中
+                if($(".shopcart-list").find(":checked").length != $(".shopcart-list").find(":checkbox").length){
+                    $("#check_all").prop("checked",false);
+                }else {
+                    $("#check_all").prop("checked",true);
+                }
+            });
+            //统一的方法, 计算价格和数量
+            function total_price_and_count(){
+                // 获取所有被选中的复选框
+                var checkeds = $(".shopcart-list").find(":checked");
+                // 根据checkeds 向上查找li标签
+                var lis = checkeds.parents("li");
+                // 遍历 lis
+                var total_price = 0; //总价格
+                var total_count = 0; //总数量
+                $.each(lis,function (i,li) {
+                    //在该li中 获取价格 和 数量
+                    var price = $(li).find(".shop-list-price").find("i").text();
+                    var count = $(li).find(".text_box").val();
+                    total_price += parseFloat(price)*count;
+                    total_count += parseInt(count)
+                });
+                {#console.debug(total_price,total_count)#}
+                // 回显总价格和总数量
+                $("#total_price").text(total_price.toFixed(2));
+                $("#total_count").text(total_count);
+            }
+
+
+            //结算按钮
+            $(".js-btn").on("click",function () {
+                if($(".shopcart-list").find(":checked").length > 0){
+                    //提交表单
+                    $("form").submit();
+                }else {
+                    alert("请求选择商品!");
+                }
+
+            })
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends 'public/base.html' %}
+{% load static %}
+
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <h1 class="am-header-title">
+            <a href="" class="">确认订单</a>
+        </h1>
+    </header>
+    <div style="height: 49px;"></div>
+{% endblock %}
+
+{% block content %}
+
+    <form action="" method="post" id="order_form">
+    {% csrf_token %}
+
+    {% if address %}
+        <div class="order-name">
+            <input type="hidden" name="addr_id" value="{{ address.pk }}">
+	    	<a href="{% url 'sp_user:address' %}">
+	    		<p class="order-tele">{{ address.username }}&nbsp;&nbsp;&nbsp;{{ address.phone }}</p>
+	    		<p class="order-add">{{ address.hcity }}&nbsp;{{ address.hproper }}&nbsp;{{ address.harea }}&nbsp;{{ address.brief }}</p>
+	    	</a>
+	    	<i class="am-icon-angle-right"></i>
+	    </div>
+        {% else %}
+        <div class="add-address">
+            <a href="{% url 'sp_user:address_add' %}">+新建收货地址</a>
+            <i class="am-icon-angle-right"></i>
+        </div>
+    {% endif %}
+
+
+    <div style="background: #eee; height: 10px;"></div>
+    <ul class="shopcart-list" style="padding-bottom: 0;">
+        {% for goods in goodsList %}
+        <li>
+            <input type="hidden" name="sku_ids" value="{{ goods.pk }}">
+            <img src="{{ MEDIA_URL }}{{ goods.logo }}" class="shop-pic"/>
+            <div class="order-mid">
+                <div class="tit">{{ goods.goods_spu.spu_name }}{{ goods.sku_name }}</div>
+                <div class="order-price">￥{{ goods.price }} <i>X{{ goods.count }}</i></div>
+            </div>
+        </li>
+        {% endfor %}
+    </ul>
+    <ul class="order-infor">
+        <li class="order-infor-first">
+            <span>商品总计：</span>
+            <i>￥<span id="goods_total_price">{{ goods_total_price }}</span></i>
+        </li>
+        <li class="order-infor-first">
+            <span>运输方式：</span>
+            <i>
+                <select name="transport">
+                    {% for transport in transports %}
+                    <option value="{{ transport.pk }}" price="{{ transport.money }}">{{ transport.name }}-{{ transport.money }}</option>
+                    {% endfor %}
+                </select>
+            </i>
+        </li>
+    </ul>
+    <div style="background: #eee; height: 10px;"></div>
+    <textarea placeholder="备注说明" name="description" class="bz-infor"></textarea>
+    </form>
+
+    <div style="background: #eee; height: 10px;"></div>
+    <div style="height: 55px;"></div>
+    <div class="shop-fix">
+        <div class="order-text">
+            应付总额：<span>￥<i id="total_price">{{ total_price }}</i></span>
+        </div>
+        <a href="javascript:;" class="js-btn">提交订单</a>
+    </div>
+{% endblock %}
+
+
+
+{% block footer %}
+    <!--底部-->
+    {% include 'public/footer.html' %}
+{% endblock %}
+
+{% block footer_js %}
+    <script>
+        $(function () {
+            //绑定运输方式改变事件
+            $("select[name='transport']").on("change",function () {
+                //重新计算总价 == 商品总价 + 运费
+                var goods_total_price = $("#goods_total_price").text();
+                var transport_price = $(this).find(":selected").attr("price");
+                var total_price = parseFloat(goods_total_price) + parseFloat(transport_price);
+                $("#total_price").text(total_price.toFixed(2));
+            });
+
+            //提交订单
+            $(".js-btn").on("click",function () {
+                {#$("#order_form").submit();#}
+                if(
+                    $("input[name='addr_id']").val()>0
+                    && $("select[name='transport']").val()>0
+                    && $("input[name='sku_ids']").length > 0
+                ){
+                    //准备数据
+                    var data = $("#order_form").serialize();
+                    //发送请求
+                    $.post("{% url 'sp_order:确认订单' %}",data,function(data){
+                        if(data.status == "0"){
+                            location.href = "{% url 'sp_order:显示订单' %}?order_sn=" + data.order_sn;
+                        }else {
+                            alert(data.errmsg);
+                        }
+                    });
+                }
+                else {
+                    alert("请选择收货地址和运输方式!");
+                }
+
+
+            })
+        })
+    </script>
+{% endblock %}

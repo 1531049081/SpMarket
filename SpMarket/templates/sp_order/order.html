@@ -1,0 +1,79 @@
+{% extends 'public/base.html' %}
+{% load static %}
+
+{% block header %}
+    <header data-am-widget="header" class="am-header am-header-default sq-head ">
+        <div class="am-header-left am-header-nav">
+            <a href="javascript:history.back()" class="">
+                <i class="am-icon-chevron-left"></i>
+            </a>
+        </div>
+        <h1 class="am-header-title">
+            <a href="" class="">确认订单</a>
+        </h1>
+    </header>
+    <div style="height: 49px;"></div>
+{% endblock %}
+
+
+{% block content %}
+    <h5 class="order-tit">收货人信息</h5>
+    <div class="order-name">
+        <p class="order-tele">{{ orderinfo.receiver }}&nbsp;&nbsp;&nbsp;{{ orderinfo.receiver_phone }}</p>
+        <p class="order-add">{{ orderinfo.address }}</p>
+    </div>
+    <div style="background: #eee; height: 10px;"></div>
+    <h5 class="order-tit">确认订单信息</h5>
+    <ul class="shopcart-list" style="padding-bottom: 0; margin-top: 0;">
+        {% for goods in order_goods %}
+        <li>
+            <img src="{{ MEDIA_URL }}{{ goods.goods_sku.logo }}" class="shop-pic"/>
+            <div class="order-mid">
+                <div class="tit">{{ goods.goods_sku.goods_spu.spu_name }}{{ goods.goods_sku.sku_name }}</div>
+                <div class="order-price">￥{{ goods.price }} <i>X{{ goods.count }}</i></div>
+            </div>
+        </li>
+        {% endfor %}
+
+    </ul>
+    <ul class="order-infor">
+        <li class="order-infor-first">
+            <span>商品总计：</span>
+            <i>￥{{ orderinfo.order_goods_money }}</i>
+        </li>
+        <li class="order-infor-first">
+            <span>运输方式：{{ orderinfo.transport.name }}</span>
+            <i>运费:{{ orderinfo.transport_price }}</i>
+        </li>
+    </ul>
+    <div style="background: #eee; height: 10px;"></div>
+    <textarea placeholder="备注说明" class="bz-infor"></textarea>
+    <ul class="pay-style">
+        <li>
+            <img src="{% static 'images/zhi.png' %}" width="50">
+            <span>
+		   	 		<p>支付宝</p>
+		   	 		<p class="descript">推荐有支付宝账号的用户使用</p>
+		   	 	</span>
+            <label class="am-radio-inline">
+                <input type="radio" checked="checked" name="radio10" value="1" data-am-ucheck=""
+                       class="am-ucheck-radio"><span class="am-ucheck-icons"><i class="am-icon-unchecked"></i><i
+                    class="am-icon-checked"></i></span>
+            </label>
+        </li>
+    </ul>
+    <div style="background: #eee; height: 10px;"></div>
+    <div style="height: 55px;"></div>
+    <div class="shop-fix">
+        <div class="order-text">
+            应付总额：<span>￥{{ orderinfo.order_money }}</span>
+        </div>
+        <a href="pay.html" class="js-btn">确认支付</a>
+    </div>
+{% endblock %}
+
+
+{% block footer %}
+    <!--底部-->
+    {% include 'public/footer.html' %}
+{% endblock %}
